@@ -242,14 +242,19 @@ def _export_excel(R, paid_df, df):
 # ══════════════════════════════════════
 def build_html(R):
     def card(label, val, sub="", color="#5A8A78"):
-        return ('<div class="card"><div class="cl">%s</div><div class="cv" style="color:%s">%s</div>'
-                '<div class="cs">%s</div></div>' % (label, color, val, sub))
+        sub_html = ('<div class="kpi-sub">%s</div>' % sub) if sub else ""
+        return ('<div class="kpi"><div class="kpi-circle"><div class="kpi-label">%s</div>'
+                '<div class="kpi-val" style="color:%s">%s</div>%s</div></div>'
+                % (label, color, val, sub_html))
+
+    def f_wan(v):
+        return "¥%.2f万" % (v / 10000)
 
     cards = []
-    cards.append(card("净GMV", "¥%.0f" % R["净GMV"], "已完成 ¥%.0f" % R["已完成GMV"]))
-    cards.append(card("订单数", "%d" % R["订单数"], "人均 %.2f 单" % R["人均订单"]))
+    cards.append(card("净GMV", f_wan(R["净GMV"]), "已完成%s" % f_wan(R["已完成GMV"])))
+    cards.append(card("订单数", "%d" % R["订单数"], "人均%.2f单" % R["人均订单"]))
     cards.append(card("付费用户", "%d" % R["用户数"], ""))
-    cards.append(card("客单价", "¥%.0f" % R["客单价"], "中位 ¥%.0f" % R["客单价中位"]))
+    cards.append(card("客单价", "¥%.0f" % R["客单价"], "中位¥%.0f" % R["客单价中位"]))
     cards.append(card("取消率", "%.1f%%" % R["取消率"], "健康<10%", _color("取消率", R["取消率"])))
     cards.append(card("售后率", "%.1f%%" % R["售后率"], "健康<5%", _color("售后率", R["售后率"])))
     cards.append(card("复购率", "%.1f%%" % R["复购率"], "目标>25%", _color("复购率", R["复购率"])))
@@ -388,12 +393,12 @@ def build_html(R):
   body{font-family:-apple-system,'Segoe UI','Microsoft YaHei','Noto Sans SC',sans-serif;
     margin:0;padding:0;min-height:100vh;
     /* 极低饱和绿灰渐变底色（比参考图更淡更灰） */
-    background:linear-gradient(160deg,#EDF5F0 0%,#E4F0EA 25%,#DAEBE3 50%,#D0E5DB 75%,#C8DFD6 100%);
+    background:linear-gradient(155deg,#E8F1EC 0%,#DCE9E2 28%,#D1E4DC 52%,#C7DCD6 76%,#C0D8D1 100%);
     color:var(--text-primary);line-height:1.5;
     -webkit-font-smoothing:antialiased;}
   /* 磨砂噪点纹理层 */
   body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
-    opacity:.035;
+    opacity:.045;
     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size:180px 180px;}
   /* 光斑层 */
@@ -425,15 +430,26 @@ def build_html(R):
     border-radius:8px;background:var(--accent-light);color:#fff;font-size:11px;font-weight:700;}
   .sec-title .sec-name{color:var(--text-primary);font-size:15px;text-transform:none;letter-spacing:1px;}
 
-  /* ── 卡片（KPI） ── */
-  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  .card{background:var(--glass-bg);backdrop-filter:blur(18px);
-    border:1px solid var(--glass-border);border-radius:16px;padding:16px 18px;
-    box-shadow:var(--glass-shadow);transition:transform .15s ease;}
-  .card:hover{transform:translateY(-2px);}
-  .cl{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;}
-  .cv{font-size:24px;font-weight:700;margin:4px 0 2px;color:var(--text-primary);}
-  .cs{font-size:11px;color:var(--text-secondary);}
+  /* ── 圆形悬浮点位卡片（KPI） ── */
+  .kpis{display:flex;flex-wrap:wrap;gap:24px 18px;justify-content:center;padding:16px 2px 4px;}
+  .kpi{display:flex;align-items:center;justify-content:center;}
+  .kpi-circle{width:126px;height:126px;border-radius:50%;
+    background:rgba(255,255,255,.60);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--glass-border);
+    box-shadow:0 12px 30px rgba(110,150,130,.16), inset 0 1px 2px rgba(255,255,255,.7);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:transform .25s ease, box-shadow .25s ease;
+    animation:floaty 7s ease-in-out infinite;}
+  .kpi-circle:hover{animation-play-state:paused;transform:translateY(-6px) scale(1.04);
+    box-shadow:0 18px 40px rgba(110,150,130,.22), inset 0 1px 2px rgba(255,255,255,.85);}
+  .kpi:nth-child(2n) .kpi-circle{animation-delay:-1.6s;}
+  .kpi:nth-child(3n) .kpi-circle{animation-delay:-3.2s;}
+  .kpi:nth-child(4n) .kpi-circle{animation-delay:-4.8s;}
+  .kpi-label{font-size:11px;color:var(--text-secondary);letter-spacing:1px;margin-bottom:4px;}
+  .kpi-val{font-size:23px;font-weight:700;color:var(--text-primary);line-height:1.05;}
+  .kpi-sub{font-size:10px;color:var(--text-secondary);margin-top:5px;}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
 
   /* ── 图表面板 ── */
   .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -518,7 +534,7 @@ def build_html(R):
 <!-- ═══ Section 1: 宏观大盘 ═══ -->
 <div class="sec">
   <div class="sec-title"><span class="sec-num">1</span><span class="sec-name">宏观大盘</span></div>
-  <div class="cards">@CARDS@</div>
+  <div class="kpis">@CARDS@</div>
   <div class="charts" style="margin-top:14px">
     <div class="panel"><h3><span class="spark">✦</span>月度趋势（净GMV + 订单）</h3><div style="position:relative;height:230px"><canvas id="mChart"></canvas></div></div>
     <div class="panel"><h3><span class="spark">✦</span>周度趋势（净GMV·已剔除取消）</h3><div style="position:relative;height:230px"><canvas id="wChart"></canvas></div></div>
@@ -572,32 +588,39 @@ def build_html(R):
 <script>const R=@JSON@;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const PALETTE=['#A8D5BA','#F4B6C2','#C3B1E1','#A0C4E2','#F6E2A0','#F2B5A0','#B5C99A','#D6CDEA','#9FD8C8','#E8B4B8'];
+const TXT='#7A9088';
+const C={line1:'#7FB7A0',line2:'#9DB8D6',bar1:'#A8D5BA',bar2:'#BCD0E6',
+  grp:['#BCD8C9','#C9D9E8','#E3D2E0','#D8E0C0','#F0DCC0','#E8C9C9','#C8D8E0','#DCD0E8','#B0D8CE','#E0C8D0'],
+  danger:'#C98E8E',warn:'#D9B77A',ok:'#8FB89C'};
 function combo(id,labels,bar,line,bll,lll,bc,lc){
   new Chart(document.getElementById(id),{type:'bar',data:{labels:labels,datasets:[
-    {type:'bar',label:bll,data:bar,backgroundColor:bc,borderRadius:6,yAxisID:'y',order:2},
-    {type:'line',label:lll,data:line,borderColor:lc,backgroundColor:lc,borderWidth:2,tension:.3,pointRadius:3,yAxisID:'y1',order:1}]},
+    {type:'line',label:lll,data:line,borderColor:lc,backgroundColor:lc+'1A',borderWidth:1.8,
+     tension:.4,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y1',order:1},
+    {type:'bar',label:bll,data:bar,backgroundColor:bc+'2E',borderColor:bc+'80',borderWidth:1,
+     borderRadius:5,yAxisID:'y',order:2}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{font:{size:11},color:'#6B8076'}}},
-      scales:{x:{ticks:{color:'#6B8076',font:{size:11}},grid:{display:false}},
-        y:{position:'left',ticks:{color:'#6B8076'},grid:{color:'rgba(150,180,165,.10)'}},
-        y1:{position:'right',ticks:{color:'#6B8076'},grid:{display:false}}}}});}
-combo('mChart',R.月度.labels,R.月度.gmv,R.月度.orders,'净GMV','订单','#A8D5BA','#D4A0A0');
-combo('wChart',R.周度.labels,R.周度.gmv,R.周度.orders,'周GMV','周订单','#A0C4E2','#C3B1E1');
+      plugins:{legend:{labels:{font:{size:11},color:TXT,usePointStyle:true,pointStyle:'circle',boxWidth:6}}},
+      scales:{x:{ticks:{color:TXT,font:{size:11}},grid:{display:false}},
+        y:{position:'left',ticks:{color:TXT,font:{size:10}},grid:{display:false}},
+        y1:{position:'right',ticks:{color:TXT,font:{size:10}},grid:{display:false}}}}});}
+combo('mChart',R.月度.labels,R.月度.gmv,R.月度.orders,'净GMV','订单',C.bar1,C.line1);
+combo('wChart',R.周度.labels,R.周度.gmv,R.周度.orders,'周GMV','周订单',C.bar2,C.line2);
 new Chart(document.getElementById('gChart'),{type:'bar',
   data:{labels:R.团体.map(x=>x.name),datasets:[{label:'净GMV',data:R.团体.map(x=>x.gmv),
-    backgroundColor:R.团体.map((x,i)=>PALETTE[i%PALETTE.length]),borderRadius:6}]},
+    backgroundColor:R.团体.map((x,i)=>C.grp[i%C.grp.length]+'4D'),
+    borderColor:R.团体.map((x,i)=>C.grp[i%C.grp.length]+'80'),borderWidth:1,borderRadius:6}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
     tooltip:{callbacks:{label:c=>'¥'+c.parsed.y}}},
-    scales:{x:{ticks:{color:'#6B8076',font:{size:11}},grid:{display:false}},
-      y:{ticks:{color:'#6B8076'},grid:{color:'rgba(150,180,165,.10)'}}}}});
+    scales:{x:{ticks:{color:TXT,font:{size:11}},grid:{display:false}},
+      y:{ticks:{color:TXT,font:{size:10}},grid:{display:false}}}}});
 new Chart(document.getElementById('hChart'),{type:'bar',data:{labels:['取消率','售后率','复购率'],
   datasets:[{label:'%',data:[R.取消率,R.售后率,R.复购率],
-    backgroundColor:['#C47070','#D4A050','#7AAA90'],borderRadius:6,barThickness:32}]},
+    backgroundColor:[C.danger+'4D',C.warn+'4D',C.ok+'4D'],
+    borderColor:[C.danger,C.warn,C.ok],borderWidth:1,borderRadius:6,barThickness:30}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+'%'}}},
-    scales:{x:{max:40,ticks:{color:'#6B8076'},grid:{color:'rgba(150,180,165,.10)'}},
-      y:{ticks:{color:'#2D3E36',font:{size:13}},grid:{display:false}}}}});
+    scales:{x:{max:40,ticks:{color:TXT,font:{size:10}},grid:{display:false}},
+      y:{ticks:{color:'#33433B',font:{size:13}},grid:{display:false}}}}});
 </script></body></html>"""
 
     rep = {
