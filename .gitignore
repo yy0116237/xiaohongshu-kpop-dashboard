@@ -1,0 +1,17 @@
+# ===== 真实经营数据（隐私，禁止上传） =====
+*.xlsx
+!*.xlsx  # 仅排除订单类；如需保留模板可单独处理
+截至*.xlsx
+累计订单数据.xlsx
+clean_orders.csv
+dashboard_data.json
+每周订单数据/
+
+# ===== Python 缓存 =====
+__pycache__/
+*.pyc
+.env
+
+# ===== 本地编辑器 =====
+.DS_Store
+Thumbs.db
